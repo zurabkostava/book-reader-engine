@@ -3418,7 +3418,7 @@ body.lang-ka #digital-library-root .site-title p {
     }
 
     body #digital-library-root .site-title{
-        transform: translateY(9px) !important;
+        transform: translateY(-18px) !important;
     }
 
     body.lang-ka #digital-library-root .site-title h1 {
