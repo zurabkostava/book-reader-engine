@@ -4836,8 +4836,8 @@ body.light-mode #copy-tooltip {
         position: absolute !important;
         width: 85px !important; /* დიდი წრე */
         height: 85px !important;
-        left: -35px !important; /* ნახევარი ჩამალული მარცხნივ */
-        bottom: -35px !important; /* ნახევარი ჩამალული ქვემოთ */
+        left: -45px !important; /* ნახევარი ჩამალული მარცხნივ */
+        bottom: -56px !important; /* ნახევარი ჩამალული ქვემოთ */
         border-radius: 50% !important;
         padding: 0 0 25px 25px !important; /* იკონის დაწევა ხილულ მხარეს */
         background: #0a0a0a !important;
