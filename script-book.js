@@ -2085,6 +2085,10 @@ function initPhysics(totalPapers) {
         updateBookState(currentLocation);
         highlightActiveSidebarItem(currentLocation, forceMobileBack || mobileShowBack);
         updateProgressBar(currentLocation, totalPapers);
+// 🚀 1. AMBIENT BACKGROUND განახლება
+        if (typeof updateAmbientBackground === 'function') {
+            updateAmbientBackground(currentLocation);
+        }
 
         if (CURRENT_BOOK_SLUG) {
             // 🚀 2. ვითვლით პროცენტს (მაგ: 0.5 ნიშნავს 50%-ს)
@@ -2226,6 +2230,11 @@ function highlightActiveSidebarItem(currentLocation, isMobileBack) {
             sibling = sibling.nextElementSibling;
         }
     });
+    // 🚀 NEW: აქ ვამატებთ ფონის განახლებას!
+    // რადგან საიდბარი უკვე განახლდა და ვიცით რომელია active
+    if (typeof updateAmbientBackground === 'function') {
+        updateAmbientBackground();
+    }
 }
 
 function updateBookState(loc) {
@@ -4818,3 +4827,81 @@ function autoFlipToElement(el) {
 }
 
 
+/* ============================================================
+   🌌 AMBIENT BACKGROUND ENGINE (SIDEBAR SYNC)
+   ============================================================ */
+window.lastAmbientUrl = null;
+
+function updateAmbientBackground() {
+    let bgEl = document.getElementById('ambient-bg');
+
+    if (!bgEl) {
+        bgEl = document.createElement('div');
+        bgEl.id = 'ambient-bg';
+        const root = document.getElementById('digital-library-root');
+        if (root) root.insertBefore(bgEl, root.firstChild);
+    }
+
+    // 1. ვპოულობთ რომელიმე აქტიურ ელემენტს საიდბარში
+    // უპირატესობას ვანიჭებთ მთავარ თავს (H1), მაგრამ თუ H2/H3-ია აქტიური, მაინც ვიპოვით მის მშობელ H1-ს
+    let activeItem = document.querySelector('#chapter-list-ui li.active');
+
+    if (!activeItem) return;
+
+    // თუ აქტიურია H2 ან H3, ავდივართ ზემოთ, სანამ არ ვიპოვით მის H1-ს
+    while (activeItem && !activeItem.classList.contains('toc-h1') && !activeItem.classList.contains('toc-cover')) {
+        activeItem = activeItem.previousElementSibling;
+    }
+
+    if (!activeItem) return;
+
+    let imgSrc = null;
+
+    // 2. ვამოწმებთ, ყდაზე ვართ თუ კონკრეტულ თავში
+    if (activeItem.classList.contains('toc-cover')) {
+        // --- ყდა (Cover) ---
+        imgSrc = bookMeta.coverImage || null;
+    } else {
+        // --- თავი (Chapter) ---
+        // ვპოულობთ რომელ თავს შეესაბამება ეს li ელემენტი სათაურის მიხედვით
+        const activeTitleText = activeItem.querySelector('span:not(.toc-arrow)').innerText.trim();
+
+        // ვძებნით ამ სათაურს ჩვენს chaptersData-ში
+        const targetChapter = chaptersData.find(ch => {
+            const chTitle = getChapterTitle(ch, currentLanguage);
+            return chTitle === activeTitleText;
+        });
+
+        if (targetChapter) {
+            const content = (currentLanguage === 'en') ? (targetChapter.content_en || targetChapter.content) : (targetChapter.content);
+            if (content) {
+                const temp = document.createElement('div');
+                temp.innerHTML = content;
+                const img = temp.querySelector('img'); // ვიღებთ პირველივე ფოტოს ამ თავიდან
+                if (img) imgSrc = img.getAttribute('src');
+            }
+        }
+    }
+
+    // 3. თუ იგივე ფოტოა, ტყუილად არ ვტვირთავთ (Performance)
+    if (imgSrc === window.lastAmbientUrl) return;
+    window.lastAmbientUrl = imgSrc;
+
+    // 4. ვცვლით ფონს
+    if (imgSrc) {
+        const imgObj = new Image();
+        imgObj.onload = () => {
+            bgEl.style.backgroundImage = `url('${imgSrc}')`;
+            bgEl.classList.add('active');
+        };
+        imgObj.src = imgSrc;
+    } else {
+        // თუ ფოტო არ აქვს, ნელა ვაქრობთ
+        bgEl.classList.remove('active');
+        setTimeout(() => {
+            if (!bgEl.classList.contains('active')) {
+                bgEl.style.backgroundImage = 'none';
+            }
+        }, 1500);
+    }
+}

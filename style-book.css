@@ -5445,3 +5445,45 @@ body.light-mode #audio-proto-toggle:hover { background: #fdfaff !important; bord
     0% { opacity: 0; transform: translate(40px, 40px) scale(0.5); }
     100% { opacity: 1; transform: translate(0, 0) scale(1); }
 }
+
+/* ============================================================
+   🌌 AMBIENT CHAPTER BACKGROUND (IMMERSIVE MODE)
+   ============================================================ */
+
+/* 1. მთავარი კონტეინერის ფონის გამჭვირვალედ ქცევა */
+#digital-library-root #main-content {
+    background-color: transparent !important;
+}
+
+/* 2. დინამიური ფონის კონტეინერი (ჩაჯდება ყველაფრის უკან) */
+#ambient-bg {
+    position: fixed !important;
+    top: -10% !important;
+    left: -10% !important;
+    width: 120% !important; /* გადიდებულია, რომ ბლარის კიდეები არ გამოჩნდეს */
+    height: 120% !important;
+    z-index: 0 !important; /* საიდბარის და წიგნის უკან */
+    background-size: cover !important;
+    background-position: center !important;
+
+    /* 🚀 მთავარი მაგია: ძლიერი ბლარი და გამუქება (Dark Mode) */
+    filter: blur(50px) brightness(0.25) saturate(1.3) !important;
+    -webkit-filter: blur(50px) brightness(0.25) saturate(1.3) !important;
+
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out, background-image 1s ease-in-out !important;
+    pointer-events: none !important; /* რომ კლიკში ხელი არ შეგვიშალოს */
+    will-change: opacity, background-image !important;
+}
+
+/* აქტიური მდგომარეობა (როცა ფოტო ნაპოვნია) */
+#ambient-bg.active {
+    opacity: 1 !important;
+}
+
+/* 3. LIGHT MODE-ის დაცვა (რომ ძალიან არ ჩამუქდეს ღია თემაში) */
+body.light-mode #ambient-bg {
+    filter: blur(50px) brightness(0.9) saturate(1.2) !important;
+    -webkit-filter: blur(50px) brightness(0.9) saturate(1.2) !important;
+    opacity: 0.5 !important; /* უფრო ნაზი ვიზუალი ღია თემისთვის */
+}
