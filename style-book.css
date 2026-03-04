@@ -3372,30 +3372,7 @@ i[class*="icon"], span[class*="icon"] {
    GEORGIAN SITE TITLE (BPG Arial Caps)
    ========================================= */
 
-body.lang-ka #digital-library-root .site-title h1 {
-    /* ფორმა: Small Caps (საუკეთესო ვიზუალი) */
-    font-variant: small-caps !important;
-    font-feature-settings: "smcp" 1 !important;
-    -webkit-font-feature-settings: "smcp" 1 !important;
-    /* ზომა: 3.2-დან ჩამოვწიეთ 2.4-ზე. ეს არის იდეალური ბალანსი */
-    font-size: 2.5rem !important;
-    /* სისქე: ლათინურ 700-ს უტოლდება ქართული 800/900 */
-    font-weight: 800 !important;
-    /* დაშორება: ოდნავ გავზარდეთ 2px-დან 3px-მდე */
-    letter-spacing: 4px !important;
-    /* პოზიცია: ფონტი დიდია, ამიტომ ხაზი უნდა შეიკუმშოს */
-    line-height: 0.9 !important;
-    /* ვერტიკალური ცენტრირება (რომ ლათინურის ადგილას დაჯდეს) */
-    margin-top: -7px !important;
-    margin-bottom: 12px !important;
-    font-family: "BPG Arial Caps", sans-serif !important;
-    font-weight: 700 !important;
-    /* რადგან ეს ფონტი ისედაც "caps"-ია (სულ დიდი ასოებია),
-       წინა small-caps ლოგიკა უნდა გავთიშოთ, რომ არ აირიოს */
-    font-variant: normal !important;
-    /* bpg ფონტები ხშირად უფრო განიერია, ამიტომ letter-spacing ოდნავ შევამციროთ */
-    letter-spacing: 2px !important;
-}
+
 /* ავტორის წარწერის დამატებითი კორექცია (თუ საჭიროა) */
 body.lang-ka #digital-library-root .site-title p {
     font-family: "BPG Arial Caps", sans-serif !important;
