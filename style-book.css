@@ -4956,33 +4956,7 @@ body.light-mode #audio-proto-toggle {
    🎧 AUDIOBOOK BUTTON - COMPLETE MASTER STYLES
    ============================================================ */
 
-/* 1. საწყისი მდგომარეობა - აბსოლუტურად დამალული */
-#audio-proto-toggle {
-    position: fixed !important;
-    bottom: 30px !important;
-    right: 30px !important;
-    z-index: 9990 !important;
-    /* ვიზუალი (desktop - pill) */
-    background: #111 !important;
-    color: #fff !important;
-    border: 1px solid #333 !important;
-    border-radius: 30px !important;
-    padding: 10px 22px !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important;
-    /* 🚀 კრიტიკულია ანიმაციისთვის: */
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transform: translateY(20px) scale(0.9) !important;
-    transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s !important;
-}
+
 /* 2. ანიმაციის გააქტიურება (JS-ით ამ კლასს დავამატებთ) */
 #audio-proto-toggle.animate-in {
     opacity: 1 !important;
