@@ -3403,7 +3403,7 @@ body.lang-ka #digital-library-root .site-title p {
         line-height: 0.2 !important;
     }
     body.lang-ka #digital-library-root .site-title{
-        transform: translateY(9px) !important;
+        transform: translateY(-14px) !important;
     }
 }
 
