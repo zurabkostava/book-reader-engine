@@ -1458,6 +1458,11 @@ body.light-mode #digital-library-root i {
     object-fit: cover !important;
     display: block !important;
     border-radius: 2px !important;
+
+    /* 🚀 GPU ACCELERATION FIX */
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    will-change: transform, opacity !important;
 }
 #digital-library-root .visually-hidden,
 #digital-library-root #bot-full-content,

@@ -1709,7 +1709,8 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
             }
             const imgSrc = imgElement.getAttribute('src');
             // 🚀 NETWORK OPTIMIZATION: დაემატა loading="lazy", რომ ინტერნეტი არ გაიჭედოს
-            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}" loading="lazy"></div>`;
+            // 🚀 GPU OPTIMIZATION: decoding="async" ეუბნება ბრაუზერს, რომ ფოტო ფონურ ძაფზე (thread) გაშიფროს და ანიმაცია არ გაჭედოს.
+            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}" loading="lazy" decoding="async"></div>`;
             pages.push(fullPageImgHTML);
             continue;
         }
@@ -4818,80 +4819,72 @@ function autoFlipToElement(el) {
 
 
 /* ============================================================
-   🌌 AMBIENT BACKGROUND ENGINE (SIDEBAR SYNC)
+   🌌 AMBIENT BACKGROUND ENGINE (PERFORMANCE OPTIMIZED)
    ============================================================ */
 window.lastAmbientUrl = null;
+window.ambientTimeout = null; // ვამატებთ ტაიმერს კონტროლისთვის
 
 function updateAmbientBackground() {
-    let bgEl = document.getElementById('ambient-bg');
-
-    if (!bgEl) {
-        bgEl = document.createElement('div');
-        bgEl.id = 'ambient-bg';
-        const root = document.getElementById('digital-library-root');
-        if (root) root.insertBefore(bgEl, root.firstChild);
+    // 🛑 1. ვიცავთ ანიმაციას: ვწყვეტთ წინა ტაიმერს, თუ მომხმარებელი სწრაფად ფურცლავს
+    if (window.ambientTimeout) {
+        clearTimeout(window.ambientTimeout);
     }
 
-    // 1. ვპოულობთ რომელიმე აქტიურ ელემენტს საიდბარში
-    // უპირატესობას ვანიჭებთ მთავარ თავს (H1), მაგრამ თუ H2/H3-ია აქტიური, მაინც ვიპოვით მის მშობელ H1-ს
-    let activeItem = document.querySelector('#chapter-list-ui li.active');
+    // 🛑 2. ვაძლევთ 800 მილიწამიან დაყოვნებას (ზუსტად იმდენს, რამდენიც ფურცვლის ანიმაციას სჭირდება)
+    window.ambientTimeout = setTimeout(() => {
+        let bgEl = document.getElementById('ambient-bg');
 
-    if (!activeItem) return;
+        if (!bgEl) {
+            bgEl = document.createElement('div');
+            bgEl.id = 'ambient-bg';
+            const root = document.getElementById('digital-library-root');
+            if (root) root.insertBefore(bgEl, root.firstChild);
+        }
 
-    // თუ აქტიურია H2 ან H3, ავდივართ ზემოთ, სანამ არ ვიპოვით მის H1-ს
-    while (activeItem && !activeItem.classList.contains('toc-h1') && !activeItem.classList.contains('toc-cover')) {
-        activeItem = activeItem.previousElementSibling;
-    }
+        let activeItem = document.querySelector('#chapter-list-ui li.active');
+        if (!activeItem) return;
 
-    if (!activeItem) return;
+        while (activeItem && !activeItem.classList.contains('toc-h1') && !activeItem.classList.contains('toc-cover')) {
+            activeItem = activeItem.previousElementSibling;
+        }
+        if (!activeItem) return;
 
-    let imgSrc = null;
+        let imgSrc = null;
 
-    // 2. ვამოწმებთ, ყდაზე ვართ თუ კონკრეტულ თავში
-    if (activeItem.classList.contains('toc-cover')) {
-        // --- ყდა (Cover) ---
-        imgSrc = bookMeta.coverImage || null;
-    } else {
-        // --- თავი (Chapter) ---
-        // ვპოულობთ რომელ თავს შეესაბამება ეს li ელემენტი სათაურის მიხედვით
-        const activeTitleText = activeItem.querySelector('span:not(.toc-arrow)').innerText.trim();
+        if (activeItem.classList.contains('toc-cover')) {
+            imgSrc = bookMeta.coverImage || null;
+        } else {
+            const activeTitleText = activeItem.querySelector('span:not(.toc-arrow)').innerText.trim();
+            const targetChapter = chaptersData.find(ch => getChapterTitle(ch, currentLanguage) === activeTitleText);
 
-        // ვძებნით ამ სათაურს ჩვენს chaptersData-ში
-        const targetChapter = chaptersData.find(ch => {
-            const chTitle = getChapterTitle(ch, currentLanguage);
-            return chTitle === activeTitleText;
-        });
-
-        if (targetChapter) {
-            const content = (currentLanguage === 'en') ? (targetChapter.content_en || targetChapter.content) : (targetChapter.content);
-            if (content) {
-                const temp = document.createElement('div');
-                temp.innerHTML = content;
-                const img = temp.querySelector('img'); // ვიღებთ პირველივე ფოტოს ამ თავიდან
-                if (img) imgSrc = img.getAttribute('src');
+            if (targetChapter) {
+                const content = (currentLanguage === 'en') ? (targetChapter.content_en || targetChapter.content) : (targetChapter.content);
+                if (content) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = content;
+                    const img = temp.querySelector('img');
+                    if (img) imgSrc = img.getAttribute('src');
+                }
             }
         }
-    }
 
-    // 3. თუ იგივე ფოტოა, ტყუილად არ ვტვირთავთ (Performance)
-    if (imgSrc === window.lastAmbientUrl) return;
-    window.lastAmbientUrl = imgSrc;
+        if (imgSrc === window.lastAmbientUrl) return;
+        window.lastAmbientUrl = imgSrc;
 
-    // 4. ვცვლით ფონს
-    if (imgSrc) {
-        const imgObj = new Image();
-        imgObj.onload = () => {
-            bgEl.style.backgroundImage = `url('${imgSrc}')`;
-            bgEl.classList.add('active');
-        };
-        imgObj.src = imgSrc;
-    } else {
-        // თუ ფოტო არ აქვს, ნელა ვაქრობთ
-        bgEl.classList.remove('active');
-        setTimeout(() => {
-            if (!bgEl.classList.contains('active')) {
-                bgEl.style.backgroundImage = 'none';
-            }
-        }, 1500);
-    }
+        if (imgSrc) {
+            const imgObj = new Image();
+            imgObj.onload = () => {
+                bgEl.style.backgroundImage = `url('${imgSrc}')`;
+                bgEl.classList.add('active');
+            };
+            imgObj.src = imgSrc;
+        } else {
+            bgEl.classList.remove('active');
+            setTimeout(() => {
+                if (!bgEl.classList.contains('active')) {
+                    bgEl.style.backgroundImage = 'none';
+                }
+            }, 1500);
+        }
+    }, 800); // 👈 800 მილიწამი აცდის ფურცელს გადაშლას!
 }
