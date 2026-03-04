@@ -1273,16 +1273,14 @@ async function generateBookStructure() {
     const container = document.getElementById('measure-container');
     const bookScene = document.querySelector('.book-scene');
 
-    // 🛡️ დაცვა: თუ ელემენტი ვერ იპოვა
     if (!container || !bookScene) return { pages: [], chapterStartMap: [] };
 
     const rect = bookScene.getBoundingClientRect();
 
-    // 🛡️ დაცვა: თუ სიმაღლე 0-ია (მაგ: CSS არ ჩატვირთულა), ავიღოთ ეკრანის სიმაღლე
     let safeHeight = rect.height;
     if (safeHeight < 100) {
         console.warn("⚠️ Warning: Book height detected as 0. Using fallback.");
-        safeHeight = window.innerHeight * 0.8; // ეკრანის 80%
+        safeHeight = window.innerHeight * 0.8;
     }
 
     container.style.width = (rect.width || window.innerWidth) + 'px';
@@ -1291,7 +1289,6 @@ async function generateBookStructure() {
     const style = getComputedStyle(container);
     const h = safeHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - 15;
 
-    // თუ მაინც ძალიან პატარაა, გავაჩეროთ რომ არ გაიჭედოს
     if (h < 50) {
         console.error("⛔ Critical: Page content height too small!");
         return { pages: [{ html: "<h1>Error: Layout too small</h1>", isCover: false }], chapterStartMap: [0] };
@@ -1320,24 +1317,24 @@ async function generateBookStructure() {
     preloaderDiv.style.width = container.style.width;
     document.body.appendChild(preloaderDiv);
 
-    // 🚀 აქ დავამატეთ თავის მთვლელი
     let currentChapterNumber = 1;
 
-    for (const ch of chaptersData) {
+    // 🚀 CPU OPTIMIZATION: ვიყენებთ სტანდარტულ ციკლს
+    for (let i = 0; i < chaptersData.length; i++) {
+        const ch = chaptersData[i];
         let contentToRender = getChapterContent(ch, currentLanguage, isAdmin);
+
         if (!contentToRender || contentToRender.trim() === "" || contentToRender === "<p><br></p>") {
-            currentChapterNumber++; // ცარიელ თავზეც უნდა გავზარდოთ, რომ რიგითობა არ აირიოს
+            currentChapterNumber++;
             continue;
         }
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = contentToRender;
 
-        // 🎵 AUDIO SYNC: აბზაცების ავტომატური დანომრვა (თავის კლასით!)
         let syncCounter = 0;
         tempContainer.querySelectorAll('p, h1, h2, h3, blockquote, li').forEach(el => {
             if (el.innerText.trim().length > 0) {
-                // 🚀 აქ დაემატა sync-ch-${currentChapterNumber}
                 el.classList.add('sync-block', `sync-ch-${currentChapterNumber}`, `sync-id-${syncCounter}`);
                 syncCounter++;
             }
@@ -1350,8 +1347,8 @@ async function generateBookStructure() {
         contentToRender = tempContainer.innerHTML;
 
         const hyph = applyCustomGeorgianHyphenation(contentToRender);
-        preloaderDiv.innerHTML = hyph;
-        await waitForImages(preloaderDiv);
+
+        // 🚀 NETWORK OPTIMIZATION: აქ ამოღებულია waitForImages! ბრაუზერი აღარ ელოდება ფოტოების გადმოწერას.
 
         const pgs = paginateContent(hyph, h, pages.length);
 
@@ -1363,12 +1360,14 @@ async function generateBookStructure() {
         }
         pgs.forEach(p => pages.push({ html: p, isCover: false }));
 
-        currentChapterNumber++; // 🚀 გადავდივართ შემდეგ თავზე
+        currentChapterNumber++;
+
+        // 🚀 CPU ANTI-FREEZE: სუსტი მოწყობილობებისთვის ვაძლევთ ბრაუზერს "სუნთქვის" (15 მილიწამი) საშუალებას
+        await new Promise(resolve => setTimeout(resolve, 15));
     }
 
     document.body.removeChild(preloaderDiv);
     return { pages, chapterStartMap: map };
-
 }
 async function renderBook() {
     const bookContainer = document.getElementById('book');
@@ -1693,6 +1692,7 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
     let nodesQueue = Array.from(tempDiv.children);
     let pages = [];
     let currentPageContent = document.createElement('div');
+
     while (nodesQueue.length > 0) {
         let node = nodesQueue.shift();
         const imgElement = node.querySelector('img') || (node.tagName === 'IMG' ? node : null);
@@ -1708,7 +1708,8 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
                 }
             }
             const imgSrc = imgElement.getAttribute('src');
-            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}"></div>`;
+            // 🚀 NETWORK OPTIMIZATION: დაემატა loading="lazy", რომ ინტერნეტი არ გაიჭედოს
+            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}" loading="lazy"></div>`;
             pages.push(fullPageImgHTML);
             continue;
         }
@@ -1733,7 +1734,6 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
     }
     return pages;
 }
-
 function splitNodeByWords(originalNode, containerState, limit) {
     if (originalNode.tagName !== 'P' && !originalNode.tagName.startsWith('H') && originalNode.tagName !== 'BLOCKQUOTE') {
         return {
@@ -3102,17 +3102,7 @@ function loadChapter(i) {
 
 
 
-function waitForImages(element) {
-    const imgs = Array.from(element.querySelectorAll('img'));
-    if (imgs.length === 0) return Promise.resolve();
-    return Promise.all(imgs.map(img => {
-        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
-        return new Promise(resolve => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-        });
-    }));
-}
+
 /* =========================================
 
    ANALYTICS ENGINE (Lightweight Heartbeat)
