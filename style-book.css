@@ -1458,11 +1458,6 @@ body.light-mode #digital-library-root i {
     object-fit: cover !important;
     display: block !important;
     border-radius: 2px !important;
-
-    /* 🚀 GPU ACCELERATION FIX */
-    transform: translateZ(0) !important;
-    backface-visibility: hidden !important;
-    will-change: transform, opacity !important;
 }
 #digital-library-root .visually-hidden,
 #digital-library-root #bot-full-content,
@@ -2953,7 +2948,7 @@ body.lang-ka #digital-library-root .chapter-list li.toc-h1 span:not(.toc-arrow) 
 /* --- BOTTOM CONTROLS --- */
 #digital-library-root .sidebar-controls {
     position: absolute !important;
-    bottom: 20px !important;
+    bottom: 0 !important;
     left: 0 !important;
     width: 100% !important;
     padding: 15px 20px !important;
@@ -3377,7 +3372,30 @@ i[class*="icon"], span[class*="icon"] {
    GEORGIAN SITE TITLE (BPG Arial Caps)
    ========================================= */
 
-
+body.lang-ka #digital-library-root .site-title h1 {
+    /* ფორმა: Small Caps (საუკეთესო ვიზუალი) */
+    font-variant: small-caps !important;
+    font-feature-settings: "smcp" 1 !important;
+    -webkit-font-feature-settings: "smcp" 1 !important;
+    /* ზომა: 3.2-დან ჩამოვწიეთ 2.4-ზე. ეს არის იდეალური ბალანსი */
+    font-size: 2.5rem !important;
+    /* სისქე: ლათინურ 700-ს უტოლდება ქართული 800/900 */
+    font-weight: 800 !important;
+    /* დაშორება: ოდნავ გავზარდეთ 2px-დან 3px-მდე */
+    letter-spacing: 4px !important;
+    /* პოზიცია: ფონტი დიდია, ამიტომ ხაზი უნდა შეიკუმშოს */
+    line-height: 0.9 !important;
+    /* ვერტიკალური ცენტრირება (რომ ლათინურის ადგილას დაჯდეს) */
+    margin-top: -7px !important;
+    margin-bottom: 12px !important;
+    font-family: "BPG Arial Caps", sans-serif !important;
+    font-weight: 700 !important;
+    /* რადგან ეს ფონტი ისედაც "caps"-ია (სულ დიდი ასოებია),
+       წინა small-caps ლოგიკა უნდა გავთიშოთ, რომ არ აირიოს */
+    font-variant: normal !important;
+    /* bpg ფონტები ხშირად უფრო განიერია, ამიტომ letter-spacing ოდნავ შევამციროთ */
+    letter-spacing: 2px !important;
+}
 /* ავტორის წარწერის დამატებითი კორექცია (თუ საჭიროა) */
 body.lang-ka #digital-library-root .site-title p {
     font-family: "BPG Arial Caps", sans-serif !important;
@@ -3400,7 +3418,7 @@ body.lang-ka #digital-library-root .site-title p {
     }
 
     body #digital-library-root .site-title{
-        transform: translateY(-18px) !important;
+        transform: translateY(9px) !important;
     }
 
     body.lang-ka #digital-library-root .site-title h1 {
@@ -3408,7 +3426,7 @@ body.lang-ka #digital-library-root .site-title p {
         line-height: 0.2 !important;
     }
     body.lang-ka #digital-library-root .site-title{
-        transform: translateY(-14px) !important;
+        transform: translateY(9px) !important;
     }
 }
 
@@ -3966,9 +3984,6 @@ body.light-mode .lang-portal-btn:hover {
     .lang-portal-btn {
         width: 38px !important;
         height: 38px !important;
-    }
-    #digital-library-root .sidebar-controls{
-        bottom: 60px!important;
     }
 }
 
@@ -4821,8 +4836,8 @@ body.light-mode #copy-tooltip {
         position: absolute !important;
         width: 85px !important; /* დიდი წრე */
         height: 85px !important;
-        left: -45px !important; /* ნახევარი ჩამალული მარცხნივ */
-        bottom: -56px !important; /* ნახევარი ჩამალული ქვემოთ */
+        left: -35px !important; /* ნახევარი ჩამალული მარცხნივ */
+        bottom: -35px !important; /* ნახევარი ჩამალული ქვემოთ */
         border-radius: 50% !important;
         padding: 0 0 25px 25px !important; /* იკონის დაწევა ხილულ მხარეს */
         background: #0a0a0a !important;
@@ -4963,7 +4978,7 @@ body.light-mode #audio-proto-toggle {
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translateY(20px) scale(0.9) !important;
-    transition: all ease-in-out 300ms !important;
+    transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s !important;
 }
 /* 2. ანიმაციის გააქტიურება (JS-ით ამ კლასს დავამატებთ) */
 #audio-proto-toggle.animate-in {
@@ -5329,143 +5344,4 @@ body.light-mode .dropdown-item.logout-item:hover {
 .audio-alert-close:hover {
     color: #999999 !important;
     text-decoration: underline !important;
-}
-
-/* ============================================================
-   🚀 FLOATING SHARE BUTTON UI (DESKTOP)
-   ============================================================ */
-#floating-share-container { position: fixed; bottom: 25px; left: 320px; z-index: 900; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: flex-start; }
-body.sidebar-closed #floating-share-container { left: 20px; }
-#main-share-btn { width: auto !important; height: 42px !important; padding: 0 18px !important; border-radius: 30px !important; background: #111; border: 1px solid #333; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 14px !important; font-weight: 600 !important; white-space: nowrap !important; }
-#main-share-btn:hover, #main-share-btn.active { background: #a855f7 !important; border-color: #a855f7 !important; color: #fff !important; transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4); }
-.share-text-label { display: inline-block !important; line-height: 1 !important; }
-#share-bubble { position: absolute; bottom: 55px; left: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 8px; display: flex; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom left; }
-#share-bubble.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-#share-bubble .share-icon-btn { width: 36px !important; height: 36px !important; border-radius: 8px !important; background: #2a2a2a !important; border: 1px solid transparent !important; color: #bbb !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; padding: 0 !important; margin: 0 !important; }
-#share-bubble .share-icon-btn svg { width: 18px !important; height: 18px !important; fill: currentColor !important; }
-#share-bubble .share-icon-btn .material-icons-outlined { font-size: 18px !important; }
-#share-bubble .share-icon-btn:hover { background: #a855f7 !important; color: #fff !important; border-color: #a855f7 !important; transform: translateY(-3px) scale(1.05) !important; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4) !important; }
-.share-divider { width: 1px !important; background: #333 !important; margin: 0 4px !important; }
-#copy-tooltip { position: absolute; top: -30px; right: 0; background: #a855f7; color: #fff; font-size: 11px; padding: 4px 8px; border-radius: 4px; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; font-weight: bold; }
-#copy-tooltip.show { opacity: 1; }
-
-/* ============================================================
-   🎧 AUDIO PLAYER UI (DESKTOP)
-   ============================================================ */
-#audio-backdrop { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.85) !important; backdrop-filter: blur(15px) !important; z-index: 9995 !important; opacity: 0 !important; pointer-events: none !important; transition: opacity 0.6s ease !important; }
-#audio-backdrop.active { opacity: 1 !important; pointer-events: auto !important; }
-.sync-highlight { background-color: rgba(168, 85, 247, 0.15) !important; border-radius: 4px !important; transition: background-color 0.2s ease !important; }
-#audio-proto-toggle.hidden { opacity: 0 !important; pointer-events: none !important; transform: translateY(30px) !important; display: none !important;}
-#audio-mini-player { position: fixed !important; bottom: 30px !important; right: 30px !important; background: rgba(17, 17, 17, 0.9) !important; border: 1px solid #333 !important; border-radius: 30px !important; padding: 6px 12px !important; display: flex !important; align-items: center !important; gap: 4px !important; box-shadow: 0 5px 15px rgba(0,0,0,0.7) !important; z-index: 9990 !important; backdrop-filter: blur(8px) !important; transition: all 0.3s ease !important; opacity: 0 !important; pointer-events: none !important; transform: translateY(30px) !important; }
-#audio-mini-player.active { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
-#audio-mini-player:hover { border-color: #a855f7 !important; }
-#audio-proto-container { position: fixed !important; bottom: 60px !important; left: 50% !important; transform: translateX(-50%) translateY(100px) !important; background: rgba(17, 17, 17, 0.95) !important; border: 1px solid #a855f7 !important; padding: 12px 24px !important; border-radius: 40px !important; z-index: 10000 !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 15px !important; box-shadow: 0 15px 35px rgba(0,0,0,0.9) !important; opacity: 0 !important; pointer-events: none !important; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important; width: max-content !important; max-width: 90vw !important; }
-#audio-proto-container.active { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
-.audio-btn { background: transparent !important; color: #fff !important; border: none !important; border-radius: 50% !important; width: 34px !important; height: 34px !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: all 0.2s !important; padding: 0 !important; }
-.audio-btn:hover { color: #a855f7 !important; transform: scale(1.1) !important; }
-.play-btn { background: #a855f7 !important; color: #fff !important; width: 40px !important; height: 40px !important; }
-.play-btn:hover { background: #9333ea !important; }
-.stop-btn:hover { color: #ef4444 !important; }
-#audio-proto-time { color: #fff !important; font-family: monospace !important; font-size: 14px !important; min-width: 45px !important; text-align: center !important; margin: 0 10px !important; }
-#audio-proto-speed { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; border-radius: 12px !important; padding: 6px 10px !important; font-size: 12px !important; font-weight: bold !important; cursor: pointer !important; }
-#audio-teleprompter { position: fixed !important; top: 12vh !important; left: 50% !important; transform: translateX(-50%) !important; width: 85% !important; max-width: 850px !important; height: 60vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; z-index: 9998 !important; opacity: 0 !important; pointer-events: none !important; transition: opacity 0.6s ease !important; text-align: center !important; overflow-y: auto !important; padding: 60px 20px !important; -ms-overflow-style: none !important; scrollbar-width: none !important; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%) !important; mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%) !important; scroll-behavior: auto !important; will-change: scroll-position !important; }
-#audio-teleprompter::-webkit-scrollbar { display: none !important; }
-#audio-teleprompter.active { opacity: 1 !important; pointer-events: auto !important; }
-@keyframes tpEnterPrev { 0% { opacity: 0; transform: translateY(-20px) scale(1.05); filter: blur(4px); } 100% { opacity: 0.5; transform: translateY(0) scale(1); filter: blur(1px); } }
-@keyframes tpEnterCurrent { 0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(8px); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); } }
-@keyframes tpEnterNext { 0% { opacity: 0; transform: translateY(40px); filter: blur(4px); } 100% { opacity: 0.5; transform: translateY(0); filter: blur(1px); } }
-.tp-prev { font-size: 16px !important; color: #888 !important; margin-bottom: 25px !important; animation: tpEnterPrev 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-.tp-current { font-size: 28px !important; color: #fff !important; font-weight: 500 !important; margin-bottom: 25px !important; text-shadow: 0 4px 15px rgba(0,0,0,0.8) !important; animation: tpEnterCurrent 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-.tp-next { font-size: 16px !important; color: #888 !important; animation: tpEnterNext 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-
-/* ============================================================
-   ☀️ LIGHT MODE OVERRIDES
-   ============================================================ */
-body.light-mode #main-share-btn { background: #ffffff !important; color: #333 !important; border: 1px solid #dddddd !important; box-shadow: 0 0 15px rgba(0,0,0,0.1) !important; border-color: #a855f7 !important; }
-body.light-mode #share-bubble { background: #ffffff !important; border: 1px solid #e0e0e0 !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important; }
-body.light-mode #share-bubble .share-divider { background: #eeeeee !important; }
-body.light-mode .share-icon-btn { color: #555555 !important; }
-body.light-mode .share-icon-btn svg { fill: #555555 !important; }
-body.light-mode .share-icon-btn:hover { background: #f5f5f5 !important; transform: scale(1.1) !important; }
-body.light-mode .share-icon-btn.copy:hover { color: #a855f7 !important; }
-body.light-mode #copy-tooltip { background: #333333 !important; color: #ffffff !important; }
-body.light-mode #audio-proto-toggle { background: #ffffff !important; color: #333333 !important; border: 1px solid #dddddd !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important; }
-body.light-mode #audio-proto-toggle:hover { background: #fdfaff !important; border-color: #a855f7 !important; }
-
-/* ============================================================
-   🚨 ABSOLUTE FIX FOR MOBILE CORNER BUTTONS (RISING SUN)
-   ============================================================ */
-@media (max-width: 768px) {
-    /* 1. ტელეპრომპტერი მობილურზე */
-    #audio-teleprompter { top: 10vh !important; width: 95% !important; height: 65vh !important; padding: 40px 15px !important; }
-    .tp-current { font-size: 20px !important; }
-    .tp-prev, .tp-next { font-size: 14px !important; }
-    #audio-proto-container { bottom: 30px !important; gap: 8px !important; padding: 10px !important; }
-    .audio-btn { width: 30px !important; height: 30px !important; }
-    .play-btn { width: 38px !important; height: 38px !important; }
-
-    /* 2. SHARE BUTTON (მარცხენა კუთხე) */
-    #floating-share-container { left: 0 !important; bottom: 0 !important; width: 45px !important; height: 45px !important; z-index: 100005 !important; position: fixed !important; }
-    #main-share-btn { position: absolute !important; width: 90px !important; height: 90px !important; min-width: 90px !important; max-width: 90px !important; min-height: 90px !important; max-height: 90px !important; left: -37px !important; bottom: -35px !important; border-radius: 50% !important; padding: 0 !important; overflow: hidden !important; color: transparent !important; transform: none !important; z-index: 100005 !important; display: block !important; }
-    #main-share-btn .material-icons-outlined { position: absolute !important; top: 20px !important; right: 20px !important; color: #fff !important; font-size: 26px !important; }
-    #main-share-btn .share-text-label { display: none !important; }
-    #share-bubble { left: 10px !important; bottom: 60px !important; transform-origin: bottom left !important; }
-
-    /* 3. AUDIO BUTTON (მარჯვენა კუთხე) */
-    #audio-proto-toggle { position: fixed !important; width: 90px !important; height: 90px !important; min-width: 90px !important; max-width: 90px !important; min-height: 90px !important; max-height: 90px !important; right: -35px !important; bottom: -37px !important; left: auto !important; top: auto !important; border-radius: 50% !important; padding: 0 !important; overflow: hidden !important; color: transparent !important; display: block !important; z-index: 100005 !important; background: #0a0a0a !important; border: 2px solid #a855f7 !important; box-shadow: 0 0 20px rgba(168, 85, 247, 0.4) !important; }
-    #audio-proto-toggle .material-icons-outlined { position: absolute !important; top: 20px !important; left: 20px !important; color: #fff !important; font-size: 26px !important; text-indent: 0 !important; margin: 0 !important; }
-
-    /* Light mode იკონები მობილურზე */
-    body.light-mode #main-share-btn .material-icons-outlined,
-    body.light-mode #audio-proto-toggle .material-icons-outlined { color: #333 !important; }
-
-    /* ანიმაცია (გაქცევის გარეშე) */
-    #audio-proto-toggle.animate-in { animation: sunRiseStrict 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important; }
-}
-
-@keyframes sunRiseStrict {
-    0% { opacity: 0; transform: translate(40px, 40px) scale(0.5); }
-    100% { opacity: 1; transform: translate(0, 0) scale(1); }
-}
-
-/* ============================================================
-   🌌 AMBIENT CHAPTER BACKGROUND (IMMERSIVE MODE)
-   ============================================================ */
-
-/* 1. მთავარი კონტეინერის ფონის გამჭვირვალედ ქცევა */
-#digital-library-root #main-content {
-    background-color: transparent !important;
-}
-
-/* 2. დინამიური ფონის კონტეინერი (ჩაჯდება ყველაფრის უკან) */
-#ambient-bg {
-    position: fixed !important;
-    top: -10% !important;
-    left: -10% !important;
-    width: 120% !important; /* გადიდებულია, რომ ბლარის კიდეები არ გამოჩნდეს */
-    height: 120% !important;
-    z-index: 0 !important; /* საიდბარის და წიგნის უკან */
-    background-size: cover !important;
-    background-position: center !important;
-
-    /* 🚀 მთავარი მაგია: ძლიერი ბლარი და გამუქება (Dark Mode) */
-    filter: blur(50px) brightness(0.25) saturate(1.3) !important;
-    -webkit-filter: blur(50px) brightness(0.25) saturate(1.3) !important;
-
-    opacity: 0;
-    transition: opacity 1.5s ease-in-out, background-image 1s ease-in-out !important;
-    pointer-events: none !important; /* რომ კლიკში ხელი არ შეგვიშალოს */
-    will-change: opacity, background-image !important;
-}
-
-/* აქტიური მდგომარეობა (როცა ფოტო ნაპოვნია) */
-#ambient-bg.active {
-    opacity: 1 !important;
-}
-
-/* 3. LIGHT MODE-ის დაცვა (რომ ძალიან არ ჩამუქდეს ღია თემაში) */
-body.light-mode #ambient-bg {
-    filter: blur(50px) brightness(0.9) saturate(1.2) !important;
-    -webkit-filter: blur(50px) brightness(0.9) saturate(1.2) !important;
-    opacity: 0.5 !important; /* უფრო ნაზი ვიზუალი ღია თემისთვის */
 }
