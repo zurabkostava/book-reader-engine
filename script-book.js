@@ -203,7 +203,6 @@ let footnoteQuill = null; // გლობალური ცვლადი პ�
             #audio-proto-toggle {
                 opacity: 1 !important;
                 visibility: visible !important;
-                display: block !important;
                 transition: none !important;
                 animation: none !important;
             }
