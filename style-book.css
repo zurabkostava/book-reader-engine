@@ -4981,7 +4981,7 @@ body.light-mode #audio-proto-toggle {
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translateY(20px) scale(0.9) !important;
-    transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s !important;
+    transition: all ease-in-out 300ms !important;
 }
 /* 2. ანიმაციის გააქტიურება (JS-ით ამ კლასს დავამატებთ) */
 #audio-proto-toggle.animate-in {
