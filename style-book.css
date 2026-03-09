@@ -635,6 +635,11 @@ body.light-mode #digital-library-root .tool-btn:hover {
     color: #fff !important;
     background: #1a1a1a !important;
 }
+#digital-library-root #editable-pages-list li.drag-over {
+    border-top: 2px solid #5b8cf5 !important;
+    background: #111827 !important;
+    color: #fff !important;
+}
 #digital-library-root #editor-container {
     flex: 1 !important;
     overflow: hidden !important;
