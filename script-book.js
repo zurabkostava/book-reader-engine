@@ -3006,22 +3006,11 @@ function setupSettingsLogic() {
 function renderChaptersList() {
     const list = document.getElementById('editable-pages-list');
     list.innerHTML = '';
-    let dragSrcIndex = null;
-
     chaptersData.forEach((ch, i) => {
         const li = document.createElement('li');
-        li.draggable = true;
-        li.dataset.index = i;
-
-        // --- drag handle ---
-        const handle = document.createElement('span');
-        handle.textContent = '⠿';
-        handle.style.cssText = 'cursor:grab;color:#444;font-size:16px;padding:0 6px 0 0;flex-shrink:0;user-select:none;line-height:1;';
-        handle.title = 'Drag to reorder';
-
-        // --- status dot and title ---
         const displayTitle = getChapterTitle(ch, editorLanguage);
-        let statusColor = '#28a745';
+        // --- სტატუსის ლოგიკა (ეს ტოვებს ფერს სიაში) ---
+        let statusColor = '#28a745'; // მწვანე (Published)
         let tooltip = "Published";
         let pub, drf;
         if (editorLanguage === 'en') {
@@ -3031,20 +3020,21 @@ function renderChaptersList() {
             pub = ch.content || "";
             drf = ch.draft_content || "";
         }
+        // თუ განსხვავებაა, ვანთებთ ყვითლად
         if (pub.trim() === "") {
-            statusColor = '#ffc107';
+            statusColor = '#ffc107'; // ყვითელი (New Draft)
             tooltip = "Draft (Not Published)";
         } else if (pub !== drf) {
-            statusColor = '#ffc107';
+            statusColor = '#ffc107'; // ყვითელი (Modified)
             tooltip = "Unpublished Changes";
         }
-
+        // ------------------------------------------------
         const titleSpan = document.createElement('span');
         titleSpan.style.flexGrow = "1";
         titleSpan.style.display = "flex";
         titleSpan.style.alignItems = "center";
         titleSpan.style.gap = "10px";
-
+        // სტატუსის წერტილი
         const dot = document.createElement('span');
         dot.style.width = "8px";
         dot.style.height = "8px";
@@ -3053,47 +3043,19 @@ function renderChaptersList() {
         dot.style.display = "inline-block";
         dot.style.boxShadow = `0 0 5px ${statusColor}40`;
         dot.title = tooltip;
-
         const textNode = document.createTextNode(displayTitle || "Untitled");
         titleSpan.appendChild(dot);
         titleSpan.appendChild(textNode);
+        // ... (დანარჩენი onclick და delete იგივე რჩება)
         titleSpan.onclick = () => {
+            // ...
             selectedChapterIndex = i;
             loadChapter(i);
         };
-
-        li.appendChild(handle);
+        // ...
         li.appendChild(titleSpan);
         // ... delBtn append ...
         if (i === selectedChapterIndex && !isEditingSettings) li.classList.add('selected');
-
-        // --- drag & drop events ---
-        li.addEventListener('dragstart', (e) => {
-            dragSrcIndex = i;
-            e.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => li.style.opacity = '0.4', 0);
-        });
-        li.addEventListener('dragend', () => {
-            li.style.opacity = '';
-            list.querySelectorAll('li').forEach(el => el.classList.remove('drag-over'));
-        });
-        li.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            list.querySelectorAll('li').forEach(el => el.classList.remove('drag-over'));
-            li.classList.add('drag-over');
-        });
-        li.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (dragSrcIndex === null || dragSrcIndex === i) return;
-            const selectedCh = chaptersData[selectedChapterIndex];
-            const [moved] = chaptersData.splice(dragSrcIndex, 1);
-            chaptersData.splice(i, 0, moved);
-            selectedChapterIndex = chaptersData.indexOf(selectedCh);
-            dragSrcIndex = null;
-            renderChaptersList();
-        });
-
         list.appendChild(li);
     });
 }
