@@ -203,7 +203,7 @@ let footnoteQuill = null; // გლობალური ცვლადი პ�
             #audio-proto-toggle {
                 opacity: 1 !important;
                 visibility: visible !important;
-                display: block !important;
+                display: flex !important;
                 transition: none !important;
                 animation: none !important;
             }
@@ -1273,16 +1273,14 @@ async function generateBookStructure() {
     const container = document.getElementById('measure-container');
     const bookScene = document.querySelector('.book-scene');
 
-    // 🛡️ დაცვა: თუ ელემენტი ვერ იპოვა
     if (!container || !bookScene) return { pages: [], chapterStartMap: [] };
 
     const rect = bookScene.getBoundingClientRect();
 
-    // 🛡️ დაცვა: თუ სიმაღლე 0-ია (მაგ: CSS არ ჩატვირთულა), ავიღოთ ეკრანის სიმაღლე
     let safeHeight = rect.height;
     if (safeHeight < 100) {
         console.warn("⚠️ Warning: Book height detected as 0. Using fallback.");
-        safeHeight = window.innerHeight * 0.8; // ეკრანის 80%
+        safeHeight = window.innerHeight * 0.8;
     }
 
     container.style.width = (rect.width || window.innerWidth) + 'px';
@@ -1291,7 +1289,6 @@ async function generateBookStructure() {
     const style = getComputedStyle(container);
     const h = safeHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - 15;
 
-    // თუ მაინც ძალიან პატარაა, გავაჩეროთ რომ არ გაიჭედოს
     if (h < 50) {
         console.error("⛔ Critical: Page content height too small!");
         return { pages: [{ html: "<h1>Error: Layout too small</h1>", isCover: false }], chapterStartMap: [0] };
@@ -1320,24 +1317,24 @@ async function generateBookStructure() {
     preloaderDiv.style.width = container.style.width;
     document.body.appendChild(preloaderDiv);
 
-    // 🚀 აქ დავამატეთ თავის მთვლელი
     let currentChapterNumber = 1;
 
-    for (const ch of chaptersData) {
+    // 🚀 CPU OPTIMIZATION: ვიყენებთ სტანდარტულ ციკლს
+    for (let i = 0; i < chaptersData.length; i++) {
+        const ch = chaptersData[i];
         let contentToRender = getChapterContent(ch, currentLanguage, isAdmin);
+
         if (!contentToRender || contentToRender.trim() === "" || contentToRender === "<p><br></p>") {
-            currentChapterNumber++; // ცარიელ თავზეც უნდა გავზარდოთ, რომ რიგითობა არ აირიოს
+            currentChapterNumber++;
             continue;
         }
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = contentToRender;
 
-        // 🎵 AUDIO SYNC: აბზაცების ავტომატური დანომრვა (თავის კლასით!)
         let syncCounter = 0;
         tempContainer.querySelectorAll('p, h1, h2, h3, blockquote, li').forEach(el => {
             if (el.innerText.trim().length > 0) {
-                // 🚀 აქ დაემატა sync-ch-${currentChapterNumber}
                 el.classList.add('sync-block', `sync-ch-${currentChapterNumber}`, `sync-id-${syncCounter}`);
                 syncCounter++;
             }
@@ -1350,8 +1347,8 @@ async function generateBookStructure() {
         contentToRender = tempContainer.innerHTML;
 
         const hyph = applyCustomGeorgianHyphenation(contentToRender);
-        preloaderDiv.innerHTML = hyph;
-        await waitForImages(preloaderDiv);
+
+        // 🚀 NETWORK OPTIMIZATION: აქ ამოღებულია waitForImages! ბრაუზერი აღარ ელოდება ფოტოების გადმოწერას.
 
         const pgs = paginateContent(hyph, h, pages.length);
 
@@ -1363,12 +1360,14 @@ async function generateBookStructure() {
         }
         pgs.forEach(p => pages.push({ html: p, isCover: false }));
 
-        currentChapterNumber++; // 🚀 გადავდივართ შემდეგ თავზე
+        currentChapterNumber++;
+
+        // 🚀 CPU ANTI-FREEZE: სუსტი მოწყობილობებისთვის ვაძლევთ ბრაუზერს "სუნთქვის" (15 მილიწამი) საშუალებას
+        await new Promise(resolve => setTimeout(resolve, 15));
     }
 
     document.body.removeChild(preloaderDiv);
     return { pages, chapterStartMap: map };
-
 }
 async function renderBook() {
     const bookContainer = document.getElementById('book');
@@ -1693,6 +1692,7 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
     let nodesQueue = Array.from(tempDiv.children);
     let pages = [];
     let currentPageContent = document.createElement('div');
+
     while (nodesQueue.length > 0) {
         let node = nodesQueue.shift();
         const imgElement = node.querySelector('img') || (node.tagName === 'IMG' ? node : null);
@@ -1708,7 +1708,9 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
                 }
             }
             const imgSrc = imgElement.getAttribute('src');
-            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}"></div>`;
+            // 🚀 NETWORK OPTIMIZATION: დაემატა loading="lazy", რომ ინტერნეტი არ გაიჭედოს
+            // 🚀 GPU OPTIMIZATION: decoding="async" ეუბნება ბრაუზერს, რომ ფოტო ფონურ ძაფზე (thread) გაშიფროს და ანიმაცია არ გაჭედოს.
+            const fullPageImgHTML = `<div class="full-page-img-wrapper"><img src="${imgSrc}" loading="lazy" decoding="async"></div>`;
             pages.push(fullPageImgHTML);
             continue;
         }
@@ -1733,7 +1735,6 @@ function paginateContent(htmlContent, maxContentHeight, startPageIndex = 0) {
     }
     return pages;
 }
-
 function splitNodeByWords(originalNode, containerState, limit) {
     if (originalNode.tagName !== 'P' && !originalNode.tagName.startsWith('H') && originalNode.tagName !== 'BLOCKQUOTE') {
         return {
@@ -2085,6 +2086,10 @@ function initPhysics(totalPapers) {
         updateBookState(currentLocation);
         highlightActiveSidebarItem(currentLocation, forceMobileBack || mobileShowBack);
         updateProgressBar(currentLocation, totalPapers);
+// 🚀 1. AMBIENT BACKGROUND განახლება
+        if (typeof updateAmbientBackground === 'function') {
+            updateAmbientBackground(currentLocation);
+        }
 
         if (CURRENT_BOOK_SLUG) {
             // 🚀 2. ვითვლით პროცენტს (მაგ: 0.5 ნიშნავს 50%-ს)
@@ -2226,6 +2231,11 @@ function highlightActiveSidebarItem(currentLocation, isMobileBack) {
             sibling = sibling.nextElementSibling;
         }
     });
+    // 🚀 NEW: აქ ვამატებთ ფონის განახლებას!
+    // რადგან საიდბარი უკვე განახლდა და ვიცით რომელია active
+    if (typeof updateAmbientBackground === 'function') {
+        updateAmbientBackground();
+    }
 }
 
 function updateBookState(loc) {
@@ -3093,17 +3103,7 @@ function loadChapter(i) {
 
 
 
-function waitForImages(element) {
-    const imgs = Array.from(element.querySelectorAll('img'));
-    if (imgs.length === 0) return Promise.resolve();
-    return Promise.all(imgs.map(img => {
-        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
-        return new Promise(resolve => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-        });
-    }));
-}
+
 /* =========================================
 
    ANALYTICS ENGINE (Lightweight Heartbeat)
@@ -4128,131 +4128,7 @@ function enableSmartSync() {
    🚀 FLOATING SHARE BUTTON (DEEP LINKING)
    ============================================================ */
 function initShareButton() {
-    // 1. CSS-ის ავტომატური ჩატვირთვა (რომ ცალკე ფაილში არ მოგიწიოს წერა)
-    const style = document.createElement('style');
-    style.innerHTML = `
-        #floating-share-container {
-            position: fixed;
-            bottom: 25px;
-            left: 320px;
-            z-index: 900;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            /* ბუშტი გაიშლება მარცხენა კიდიდან მარჯვნივ, რომ არ მოიჭრას */
-            align-items: flex-start; 
-        }
 
-        body.sidebar-closed #floating-share-container { 
-            left: 20px; 
-        }
-
-        @media (max-width: 768px) {
-            #floating-share-container { 
-                left: 15px !important; 
-                /* ღილაკი ჩამოვწიეთ სულ ქვემოთ, რომ ტექსტს არ აეფაროს */
-                bottom: 30px !important; 
-            }
-        }
-
-        /* მთავარი მრგვალი ღილაკი */
-        #main-share-btn {
-            width: 45px; height: 45px;
-            border-radius: 50%;
-            background: #111;
-            border: 1px solid #333;
-            color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #main-share-btn:hover,
-        #main-share-btn.active {
-            background: #a855f7 !important;
-            border-color: #a855f7 !important;
-            color: #fff !important; /* 🛑 უმთავრესი: იკონი ყოველთვის თეთრი იქნება! */
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4); 
-        }
-
-        /* გამოსაშლელი ბუშტი */
-        #share-bubble {
-            position: absolute;
-            bottom: 55px;
-            left: 0; /* ვაფიქსირებთ მარცხენა კიდეზე */
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 8px;
-            display: flex; gap: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            opacity: 0; visibility: hidden;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom left; /* ანიმაცია იწყება ქვედა-მარცხენა კუთხიდან */
-        }
-
-        #share-bubble.active {
-            opacity: 1; visibility: visible;
-            transform: translateY(0) scale(1);
-        }
-
-        /* 🛑 პატარა იკონები ბუშტში (WordPress-ის ავტომატური ფერების ბლოკირება) */
-        #share-bubble .share-icon-btn {
-            width: 36px !important; 
-            height: 36px !important;
-            border-radius: 8px !important;
-            background: #2a2a2a !important; 
-            border: 1px solid transparent !important;
-            color: #bbb !important; 
-            display: flex !important; 
-            align-items: center !important; 
-            justify-content: center !important;
-            cursor: pointer !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        #share-bubble .share-icon-btn svg { 
-            width: 18px !important; 
-            height: 18px !important; 
-            fill: currentColor !important; 
-        }
-        
-        #share-bubble .share-icon-btn .material-icons-outlined { 
-            font-size: 18px !important; 
-        }
-
-        /* 🔥 ერთიანი ეფექტური ჰოვერი (ყველა იკონისთვის) 🔥 */
-        #share-bubble .share-icon-btn:hover {
-            background: #a855f7 !important;
-            color: #fff !important;
-            border-color: #a855f7 !important;
-            transform: translateY(-3px) scale(1.05) !important; 
-            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4) !important; 
-        }
-
-        .share-divider {
-            width: 1px !important; 
-            background: #333 !important; 
-            margin: 0 4px !important;
-        }
-
-        /* Tooltip დაკოპირებისთვის */
-        #copy-tooltip {
-            position: absolute; top: -30px; right: 0;
-            background: #a855f7; color: #fff;
-            font-size: 11px; padding: 4px 8px; border-radius: 4px;
-            opacity: 0; transition: opacity 0.2s;
-            pointer-events: none; white-space: nowrap; font-weight: bold;
-        }
-        #copy-tooltip.show { opacity: 1; }
-    
-    `;
-    document.head.appendChild(style);
 
     // 2. HTML ელემენტების შექმნა
     const container = document.createElement('div');
@@ -4440,38 +4316,7 @@ function initAudioPrototype() {
     let isFocusMode = false;
     syncAudioPlayer = new Audio();
 
-    const style = document.createElement('style');
-    style.innerHTML = `
-        #audio-backdrop { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.85) !important; backdrop-filter: blur(15px) !important; z-index: 9995 !important; opacity: 0 !important; pointer-events: none !important; transition: opacity 0.6s ease !important; }
-        #audio-backdrop.active { opacity: 1 !important; pointer-events: auto !important; }
-        .sync-highlight { background-color: rgba(168, 85, 247, 0.15) !important; border-radius: 4px !important; transition: background-color 0.2s ease !important; }
-        #audio-proto-toggle { position: fixed !important; bottom: 30px !important; right: 30px !important; background: #111 !important; color: #fff !important; border: 1px solid #333 !important; border-radius: 30px !important; padding: 10px 20px !important; font-size: 14px !important; font-weight: bold !important; display: flex !important; align-items: center !important; gap: 8px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important; cursor: pointer !important; z-index: 9990 !important; transition: all 0.3s ease !important; }
-        #audio-proto-toggle:hover { border-color: #a855f7 !important; color: #a855f7 !important; transform: translateY(-3px) !important; }
-        #audio-proto-toggle.hidden { opacity: 0 !important; pointer-events: none !important; transform: translateY(30px) !important; display: none !important;}
-        #audio-mini-player { position: fixed !important; bottom: 30px !important; right: 30px !important; background: rgba(17, 17, 17, 0.9) !important; border: 1px solid #333 !important; border-radius: 30px !important; padding: 6px 12px !important; display: flex !important; align-items: center !important; gap: 4px !important; box-shadow: 0 5px 15px rgba(0,0,0,0.7) !important; z-index: 9990 !important; backdrop-filter: blur(8px) !important; transition: all 0.3s ease !important; opacity: 0 !important; pointer-events: none !important; transform: translateY(30px) !important; }
-        #audio-mini-player.active { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
-        #audio-mini-player:hover { border-color: #a855f7 !important; }
-        #audio-proto-container { position: fixed !important; bottom: 60px !important; left: 50% !important; transform: translateX(-50%) translateY(100px) !important; background: rgba(17, 17, 17, 0.95) !important; border: 1px solid #a855f7 !important; padding: 12px 24px !important; border-radius: 40px !important; z-index: 10000 !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 15px !important; box-shadow: 0 15px 35px rgba(0,0,0,0.9) !important; opacity: 0 !important; pointer-events: none !important; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important; width: max-content !important; max-width: 90vw !important; }
-        #audio-proto-container.active { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
-        .audio-btn { background: transparent !important; color: #fff !important; border: none !important; border-radius: 50% !important; width: 34px !important; height: 34px !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: all 0.2s !important; padding: 0 !important; }
-        .audio-btn:hover { color: #a855f7 !important; transform: scale(1.1) !important; }
-        .play-btn { background: #a855f7 !important; color: #fff !important; width: 40px !important; height: 40px !important; }
-        .play-btn:hover { background: #9333ea !important; }
-        .stop-btn:hover { color: #ef4444 !important; } 
-        #audio-proto-time { color: #fff !important; font-family: monospace !important; font-size: 14px !important; min-width: 45px !important; text-align: center !important; margin: 0 10px !important; }
-        #audio-proto-speed { background: #222 !important; color: #fff !important; border: 1px solid #444 !important; border-radius: 12px !important; padding: 6px 10px !important; font-size: 12px !important; font-weight: bold !important; cursor: pointer !important; }
-        #audio-teleprompter { position: fixed !important; top: 12vh !important; left: 50% !important; transform: translateX(-50%) !important; width: 85% !important; max-width: 850px !important; height: 60vh !important; display: flex !important; flex-direction: column !important; align-items: center !important; z-index: 9998 !important; opacity: 0 !important; pointer-events: none !important; transition: opacity 0.6s ease !important; text-align: center !important; overflow-y: auto !important; padding: 60px 20px !important; -ms-overflow-style: none !important; scrollbar-width: none !important; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%) !important; mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%) !important; scroll-behavior: auto !important; will-change: scroll-position !important; }
-        #audio-teleprompter::-webkit-scrollbar { display: none !important; }
-        #audio-teleprompter.active { opacity: 1 !important; pointer-events: auto !important; }
-        @keyframes tpEnterPrev { 0% { opacity: 0; transform: translateY(-20px) scale(1.05); filter: blur(4px); } 100% { opacity: 0.5; transform: translateY(0) scale(1); filter: blur(1px); } }
-        @keyframes tpEnterCurrent { 0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(8px); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); } }
-        @keyframes tpEnterNext { 0% { opacity: 0; transform: translateY(40px); filter: blur(4px); } 100% { opacity: 0.5; transform: translateY(0); filter: blur(1px); } }
-        .tp-prev { font-size: 16px !important; color: #888 !important; margin-bottom: 25px !important; animation: tpEnterPrev 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-        .tp-current { font-size: 28px !important; color: #fff !important; font-weight: 500 !important; margin-bottom: 25px !important; text-shadow: 0 4px 15px rgba(0,0,0,0.8) !important; animation: tpEnterCurrent 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-        .tp-next { font-size: 16px !important; color: #888 !important; animation: tpEnterNext 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-        @media (max-width: 768px) { #audio-teleprompter { top: 10vh !important; width: 95% !important; height: 65vh !important; padding: 40px 15px !important; } .tp-current { font-size: 20px !important; } .tp-prev, .tp-next { font-size: 14px !important; } #audio-proto-container { bottom: 30px !important; gap: 8px !important; padding: 10px !important; } .audio-btn { width: 30px !important; height: 30px !important; } .play-btn { width: 38px !important; height: 38px !important; } }
-    `;
-    document.head.appendChild(style);
+
 
     if (!window.audioLockAttached) {
         const preventBookInteraction = (e) => {
@@ -4863,6 +4708,8 @@ function initAudioPrototype() {
     }
     requestAnimationFrame(smoothScrollLoop);
 }
+
+
 /* ============================================================
    🚀 ფუნქცია: აუდიო ავტორიზაციის მოდალი (Multilingual)
    ============================================================ */
@@ -4971,3 +4818,73 @@ function autoFlipToElement(el) {
 }
 
 
+/* ============================================================
+   🌌 AMBIENT BACKGROUND ENGINE (PERFORMANCE OPTIMIZED)
+   ============================================================ */
+window.lastAmbientUrl = null;
+window.ambientTimeout = null; // ვამატებთ ტაიმერს კონტროლისთვის
+
+function updateAmbientBackground() {
+    // 🛑 1. ვიცავთ ანიმაციას: ვწყვეტთ წინა ტაიმერს, თუ მომხმარებელი სწრაფად ფურცლავს
+    if (window.ambientTimeout) {
+        clearTimeout(window.ambientTimeout);
+    }
+
+    // 🛑 2. ვაძლევთ 800 მილიწამიან დაყოვნებას (ზუსტად იმდენს, რამდენიც ფურცვლის ანიმაციას სჭირდება)
+    window.ambientTimeout = setTimeout(() => {
+        let bgEl = document.getElementById('ambient-bg');
+
+        if (!bgEl) {
+            bgEl = document.createElement('div');
+            bgEl.id = 'ambient-bg';
+            const root = document.getElementById('digital-library-root');
+            if (root) root.insertBefore(bgEl, root.firstChild);
+        }
+
+        let activeItem = document.querySelector('#chapter-list-ui li.active');
+        if (!activeItem) return;
+
+        while (activeItem && !activeItem.classList.contains('toc-h1') && !activeItem.classList.contains('toc-cover')) {
+            activeItem = activeItem.previousElementSibling;
+        }
+        if (!activeItem) return;
+
+        let imgSrc = null;
+
+        if (activeItem.classList.contains('toc-cover')) {
+            imgSrc = bookMeta.coverImage || null;
+        } else {
+            const activeTitleText = activeItem.querySelector('span:not(.toc-arrow)').innerText.trim();
+            const targetChapter = chaptersData.find(ch => getChapterTitle(ch, currentLanguage) === activeTitleText);
+
+            if (targetChapter) {
+                const content = (currentLanguage === 'en') ? (targetChapter.content_en || targetChapter.content) : (targetChapter.content);
+                if (content) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = content;
+                    const img = temp.querySelector('img');
+                    if (img) imgSrc = img.getAttribute('src');
+                }
+            }
+        }
+
+        if (imgSrc === window.lastAmbientUrl) return;
+        window.lastAmbientUrl = imgSrc;
+
+        if (imgSrc) {
+            const imgObj = new Image();
+            imgObj.onload = () => {
+                bgEl.style.backgroundImage = `url('${imgSrc}')`;
+                bgEl.classList.add('active');
+            };
+            imgObj.src = imgSrc;
+        } else {
+            bgEl.classList.remove('active');
+            setTimeout(() => {
+                if (!bgEl.classList.contains('active')) {
+                    bgEl.style.backgroundImage = 'none';
+                }
+            }, 1500);
+        }
+    }, 800); // 👈 800 მილიწამი აცდის ფურცელს გადაშლას!
+}
