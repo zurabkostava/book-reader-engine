@@ -625,15 +625,42 @@ body.light-mode #digital-library-root .tool-btn:hover {
 #digital-library-root #editable-pages-list li {
     display: flex !important;
     justify-content: space-between !important;
+    align-items: center !important;
     padding: 10px !important;
     border-bottom: 1px solid #1a1a1a !important;
     color: #666 !important;
     cursor: pointer !important;
+    transition: border-color 0.15s !important;
 }
 #digital-library-root #editable-pages-list li.selected,
 #digital-library-root #editable-pages-list li:hover {
     color: #fff !important;
     background: #1a1a1a !important;
+}
+/* Drag handle */
+#digital-library-root .chapter-drag-handle {
+    cursor: grab !important;
+    color: #555 !important;
+    font-size: 18px !important;
+    margin-right: 4px !important;
+    flex-shrink: 0 !important;
+    user-select: none !important;
+}
+#digital-library-root .chapter-drag-handle:hover {
+    color: #aaa !important;
+}
+#digital-library-root .chapter-drag-handle:active {
+    cursor: grabbing !important;
+}
+/* Drag feedback */
+#digital-library-root #editable-pages-list li.dragging {
+    opacity: 0.4 !important;
+}
+#digital-library-root #editable-pages-list li.drag-over-above {
+    border-top: 2px solid #4a9eff !important;
+}
+#digital-library-root #editable-pages-list li.drag-over-below {
+    border-bottom: 2px solid #4a9eff !important;
 }
 #digital-library-root #editor-container {
     flex: 1 !important;

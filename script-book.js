@@ -3013,11 +3013,15 @@ function setupSettingsLogic() {
     }
 }
 
+let _chapterDragIndex = null;
+
 function renderChaptersList() {
     const list = document.getElementById('editable-pages-list');
     list.innerHTML = '';
     chaptersData.forEach((ch, i) => {
         const li = document.createElement('li');
+        li.setAttribute('draggable', 'true');
+        li.setAttribute('data-chapter-index', i);
         const displayTitle = getChapterTitle(ch, editorLanguage);
         // --- სტატუსის ლოგიკა (ეს ტოვებს ფერს სიაში) ---
         let statusColor = '#28a745'; // მწვანე (Published)
@@ -3039,6 +3043,12 @@ function renderChaptersList() {
             tooltip = "Unpublished Changes";
         }
         // ------------------------------------------------
+        // Drag handle
+        const dragHandle = document.createElement('span');
+        dragHandle.className = 'chapter-drag-handle material-icons-outlined';
+        dragHandle.textContent = 'drag_indicator';
+        dragHandle.title = 'Drag to reorder';
+
         const titleSpan = document.createElement('span');
         titleSpan.style.flexGrow = "1";
         titleSpan.style.display = "flex";
@@ -3063,9 +3073,65 @@ function renderChaptersList() {
             loadChapter(i);
         };
         // ...
+        li.appendChild(dragHandle);
         li.appendChild(titleSpan);
         // ... delBtn append ...
         if (i === selectedChapterIndex && !isEditingSettings) li.classList.add('selected');
+
+        // --- Drag & Drop events ---
+        li.addEventListener('dragstart', (e) => {
+            _chapterDragIndex = i;
+            li.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        li.addEventListener('dragend', () => {
+            li.classList.remove('dragging');
+            _chapterDragIndex = null;
+            list.querySelectorAll('li').forEach(el => el.classList.remove('drag-over-above', 'drag-over-below'));
+        });
+        li.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (_chapterDragIndex === null || _chapterDragIndex === i) return;
+            const rect = li.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            li.classList.remove('drag-over-above', 'drag-over-below');
+            if (e.clientY < midY) {
+                li.classList.add('drag-over-above');
+            } else {
+                li.classList.add('drag-over-below');
+            }
+        });
+        li.addEventListener('dragleave', () => {
+            li.classList.remove('drag-over-above', 'drag-over-below');
+        });
+        li.addEventListener('drop', (e) => {
+            e.preventDefault();
+            li.classList.remove('drag-over-above', 'drag-over-below');
+            if (_chapterDragIndex === null || _chapterDragIndex === i) return;
+            const rect = li.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const dropAfter = e.clientY >= midY;
+            const fromIdx = _chapterDragIndex;
+            // Remove the dragged chapter
+            const [moved] = chaptersData.splice(fromIdx, 1);
+            // Calculate new insertion index
+            let toIdx = i;
+            if (fromIdx < i) toIdx--; // adjust since we removed before
+            if (dropAfter) toIdx++;
+            chaptersData.splice(toIdx, 0, moved);
+            // Update selectedChapterIndex to follow the selected chapter
+            if (selectedChapterIndex === fromIdx) {
+                selectedChapterIndex = toIdx;
+            } else if (fromIdx < selectedChapterIndex && toIdx >= selectedChapterIndex) {
+                selectedChapterIndex--;
+            } else if (fromIdx > selectedChapterIndex && toIdx <= selectedChapterIndex) {
+                selectedChapterIndex++;
+            }
+            _chapterDragIndex = null;
+            renderChaptersList();
+        });
+
         list.appendChild(li);
     });
 }
